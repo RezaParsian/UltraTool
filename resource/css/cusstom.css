@@ -1,0 +1,35 @@
+*{
+    @apply text-white;
+}
+
+h1 {
+    @apply text-4xl;
+}
+
+h2 {
+    @apply text-3xl;
+}
+
+h3 {
+    @apply text-2xl;
+}
+
+h4 {
+    @apply text-xl;
+}
+
+h5 {
+    @apply text-lg;
+}
+
+h6 {
+    @apply text-base;
+}
+
+button {
+    @apply bg-blue-500 hover:bg-blue-700 text-white py-1 px-5 rounded border-none cursor-pointer;
+}
+
+.btn-pink {
+    @apply bg-rose-300 hover:bg-rose-400;
+}

@@ -1,0 +1,28 @@
+{
+  "name": "UltraTool",
+  "version": "0.0.1",
+  "description": "i will make ultra tool",
+  "main": "webpack.mix.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "php -S 127.0.0.1:9999 -t public"
+  },
+  "keywords": [],
+  "author": "RezaParsian",
+  "license": "MIT",
+  "devDependencies": {
+    "autoprefixer": "^10.4.7",
+    "laravel-mix": "^6.0.43",
+    "postcss": "^8.4.13",
+    "postcss-import": "^14.1.0",
+    "resolve-url-loader": "^5.0.0",
+    "tailwindcss": "^3.0.24",
+    "vue-loader": "^15.9.8",
+    "vue-template-compiler": "^2.6.14"
+  },
+  "dependencies": {
+    "font-awesome": "^4.7.0",
+    "jquery": "^3.6.0",
+    "vue": "^2.6.14"
+  }
+}
