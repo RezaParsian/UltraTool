@@ -9,6 +9,8 @@ Vue.component("url_decode", require("./components/operations/url_decode").defaul
 Vue.component("url_encode", require("./components/operations/url_encode").default);
 Vue.component("to_base64", require("./components/operations/to_base64").default);
 Vue.component("from_base64", require("./components/operations/from_base64").default);
+Vue.component("json_beautify", require("./components/operations/json_beautify").default);
+Vue.component("jwt_decode", require("./components/operations/jwt_decode").default);
 
 const app = new Vue({
     el: "#ultra_tool"
