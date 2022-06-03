@@ -5,16 +5,15 @@
 </template>
 
 <script>
+import {bus} from "../../app";
+
 export default {
     name: "jwt_decode",
     methods: {
         encrypt(str) {
             let jwt = str.split(".");
-            let result = "";
-
-            const base64 = atob(jwt[1]);
-            const json = JSON.parse(base64);
-            return JSON.stringify(json, null, 4);
+            const base64 = bus.methods.from_base64(jwt[1]);
+            return bus.methods.json_beautify(base64);
         }
     }
 }

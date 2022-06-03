@@ -21,8 +21,8 @@
                             </svg>
                         </div>
                         <div class="flex-col flex flex-1 overflow-scroll">
-                            <span v-for="(item,index) in recipe" @click="removeFromRecipe" :data-id="item+index">
-                              <component :is="item" :key="item+index" :ref="item+index" class="cursor-pointer hover:bg-gray-700"></component>
+                            <span v-for="(item,index) in recipe" @click="removeFromRecipe" :data-id="item.name+index">
+                              <component :is="item" :key="item.name+index" :ref="item.name+index" class="cursor-pointer hover:bg-gray-700"></component>
                             </span>
                         </div>
                     </div>
@@ -46,6 +46,14 @@
 </template>
 
 <script>
+import {bus} from "../app";
+import url_decode from "./operations/url_decode";
+import url_encode from "./operations/url_encode";
+import to_base64 from "./operations/to_base64";
+import from_base64 from "./operations/from_base64";
+import json_beautify from "./operations/json_beautify";
+import jwt_decode from "./operations/jwt_decode";
+
 export default {
     name: "UltraTool",
     data() {
@@ -59,32 +67,32 @@ export default {
                 {
                     id: 1,
                     name: "URL Decode",
-                    component: "url_decode"
+                    component: url_decode
                 },
                 {
                     id: 2,
                     name: "URL Encode",
-                    component: "url_encode"
+                    component: url_encode
                 },
                 {
                     id: 3,
                     name: "To Base64",
-                    component: "to_base64"
+                    component: to_base64
                 },
                 {
                     id: 4,
                     name: "From Base64",
-                    component: "from_base64"
+                    component: from_base64
                 },
                 {
                     id: 5,
                     name: "Json Beautify",
-                    component: "json_beautify"
+                    component: json_beautify
                 },
                 {
                     id: 6,
                     name: "Jwt Decode",
-                    component: "jwt_decode"
+                    component: jwt_decode
                 },
             ],
             recipe: [],
@@ -97,22 +105,26 @@ export default {
         },
         recipe(val) {
             this.encrypt();
-            localStorage.setItem("recipe", JSON.stringify(val));
+            localStorage.setItem("recipe", JSON.stringify(val.map((x) => x.name)));
         }
     },
     methods: {
         encrypt() {
             this.$nextTick(() => {
-                let temp = this.input;
+                try{
+                    let temp = this.input;
 
-                this.setLength();
+                    this.setLength();
 
-                this.recipe.map((item, index) => {
-                    const ref = item + index;
-                    temp = this.$refs[ref][0].encrypt(temp);
-                });
+                    this.recipe.map((item, index) => {
+                        const ref = item.name + index;
+                        temp = this.$refs[ref][0].encrypt(temp);
+                    });
 
-                this.output = temp;
+                    this.output = temp;
+                }catch (e){
+                    alert(e.message.replace("DOMException: ", ""));
+                }
             });
         },
         addToRecipe(element) {
@@ -129,8 +141,19 @@ export default {
         },
     },
     mounted() {
+        // this.loading=true;
+        // add all encrypted operations to bus
+        bus['methods'] = {};
+        this.operations.map((operation) => {
+            bus.methods[operation.component.name] = operation.component.methods.encrypt;
+        });
+
         this.input = localStorage.getItem("input") || "";
-        this.recipe = localStorage.getItem("recipe") ? JSON.parse(localStorage.getItem("recipe")) : [];
+        const recipe = localStorage.getItem("recipe") ? JSON.parse(localStorage.getItem("recipe")) : [];
+
+        this.recipe=recipe.map((item) => {
+            return this.operations.find((operation) => operation.component.name === item).component;
+        });
     }
 }
 </script>
