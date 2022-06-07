@@ -21,8 +21,13 @@
                             </svg>
                         </div>
                         <div class="flex-col flex flex-1 overflow-scroll">
-                            <span v-for="(item,index) in recipe" @click="removeFromRecipe" :data-id="item.name+index">
-                              <component :is="item" :key="item.name+index" :ref="item.name+index" class="cursor-pointer hover:bg-gray-700"></component>
+                            <span class="flex cursor-pointer hover:bg-gray-700 border-0 border-b border-solid border-orange-200 p-2" v-for="(item,index) in recipe" @click="removeFromRecipe" :data-id="item.name+index"
+                                  :class="!item.is_active ? 'hover:bg-red-500/90 bg-red-500' : ''">
+                                <component :is="item.component" :key="item.name+index" :ref="item.name+index" @click.stop></component>
+                                <svg class="svg-icon my-auto ml-auto" viewBox="0 0 20 20" @click.self="pauseItem" :data-id="index" @click.stop>
+                                   <path fill="none"
+                                         d="M13.304,5.008L9.653,7.036H6.485c-0.24,0-0.435,0.195-0.435,0.435v5.06c0,0.24,0.194,0.436,0.435,0.436h3.168l3.651,2.027c0.066,0.037,0.139,0.055,0.211,0.055c0.077,0,0.152-0.02,0.221-0.061c0.133-0.078,0.215-0.221,0.215-0.373V5.388c0-0.154-0.082-0.296-0.215-0.375C13.604,4.936,13.438,4.933,13.304,5.008z M13.08,13.874l-3.103-1.725c-0.064-0.035-0.138-0.055-0.212-0.055H6.92V7.905h2.845c0.074,0,0.147-0.019,0.212-0.055l3.103-1.723V13.874z"></path>
+                                </svg>
                             </span>
                         </div>
                     </div>
@@ -53,6 +58,7 @@ import to_base64 from "./operations/to_base64";
 import from_base64 from "./operations/from_base64";
 import json_beautify from "./operations/json_beautify";
 import jwt_decode from "./operations/jwt_decode";
+import json_array from "./operations/json_array";
 
 export default {
     name: "UltraTool",
@@ -94,6 +100,11 @@ export default {
                     name: "Jwt Decode",
                     component: jwt_decode
                 },
+                {
+                    id: 7,
+                    name: "Json To Array",
+                    component: json_array
+                },
             ],
             recipe: [],
         }
@@ -103,20 +114,34 @@ export default {
             this.encrypt();
             localStorage.setItem("input", this.input);
         },
-        recipe(val) {
-            this.encrypt();
-            localStorage.setItem("recipe", JSON.stringify(val.map((x) => x.name)));
-        }
+        recipe: {
+            deep: true,
+            handler(val) {
+                this.encrypt();
+                localStorage.setItem("recipe", JSON.stringify(val.map((x) => {
+                    return {
+                        name: x.name,
+                        is_active: x.is_active
+                    }
+                })));
+            }
+        },
     },
     methods: {
+        pauseItem(element) {
+            const id = element.target.dataset.id
+            element.target.parentElement.classList.toggle("bg-red-500");
+            element.target.parentElement.classList.toggle("hover:bg-red-500/90");
+            this.recipe[id].is_active = !this.recipe[id].is_active;
+        },
         encrypt() {
             this.$nextTick(() => {
-                try{
+                try {
                     let temp = this.input;
 
                     this.setLength();
 
-                    this.recipe.map((item, index) => {
+                    this.recipe.filter((x) => x.is_active).map((item, index) => {
                         const ref = item.name + index;
                         temp = this.$refs[ref][0].encrypt(temp);
                     });
@@ -129,31 +154,50 @@ export default {
         },
         addToRecipe(element) {
             const id = +element.target.dataset.id;
-            this.recipe.push(this.operations.find((operation) => operation.id === id).component);
+            this.recipe.push({
+                name: this.operations.find((x) => x.id === id).name,
+                component: this.operations.find((x) => x.id === id).component,
+                is_active: true,
+            });
         },
         removeFromRecipe(element) {
-            const id = element.target.parentElement.dataset.id;
+            const id = element.target.dataset.id;
             this.recipe.splice(this.recipe.indexOf(id), 1);
         },
         setLength() {
             this.length = this.input.trim().length;
             this.lines = this.input.trim().split("\n").length;
         },
+        setBusMethods() {
+            bus['methods'] = {};
+            this.operations.map((operation) => {
+                bus.methods[operation.component.name] = operation.component.methods.encrypt;
+            });
+        },
+        getLocalStorage() {
+            this.input = localStorage.getItem("input") || "";
+            const recipe = localStorage.getItem("recipe") ? JSON.parse(localStorage.getItem("recipe")) : [];
+
+            this.recipe = recipe.map((item) => {
+                return {
+                    component: this.operations.find((operation) => operation.name === item.name).component,
+                    name: item.name,
+                    is_active: item.is_active
+                };
+            });
+        }
     },
     mounted() {
-        // this.loading=true;
-        // add all encrypted operations to bus
-        bus['methods'] = {};
-        this.operations.map((operation) => {
-            bus.methods[operation.component.name] = operation.component.methods.encrypt;
-        });
+        window.vm = this;
+        this.loading = true;
 
-        this.input = localStorage.getItem("input") || "";
-        const recipe = localStorage.getItem("recipe") ? JSON.parse(localStorage.getItem("recipe")) : [];
+        this.setBusMethods();
 
-        this.recipe=recipe.map((item) => {
-            return this.operations.find((operation) => operation.component.name === item).component;
-        });
+        this.getLocalStorage();
+
+        setTimeout(() => {
+            this.loading = false;
+        }, 1000);
     }
 }
 </script>

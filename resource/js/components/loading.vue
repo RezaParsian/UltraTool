@@ -34,7 +34,7 @@ svg{
   stroke-linejoin: round;
 }
 .loading svg polyline#back {
-  stroke: rgba(110,123,242,0.3);
+  stroke: rgba(19, 24, 30, 0.83);
 }
 .loading svg polyline#front {
   stroke: #6e7bf2;

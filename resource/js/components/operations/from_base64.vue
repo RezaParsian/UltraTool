@@ -1,5 +1,5 @@
 <template>
-  <div class="border-0 border-b border-solid border-orange-200 p-2">
+  <div>
     From Base64
   </div>
 </template>
